@@ -23,7 +23,7 @@ async function connectDB() {
     await client.connect();
     console.log("✅ MongoDB Connected");
 
-    db = client.db(process.env.DB_NAME); // use database
+    db = client.db(process.env.DB_NAME); // database name from .env
   } catch (err) {
     console.error("❌ MongoDB Error:", err);
   }
@@ -41,12 +41,14 @@ app.post("/contact", async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
+    // validation
     if (!name || !email || !message) {
       return res.status(400).json({
         message: "All fields required ⚠️"
       });
     }
 
+    // insert into MongoDB
     const result = await db.collection("contacts").insertOne({
       name,
       email,
@@ -54,13 +56,15 @@ app.post("/contact", async (req, res) => {
       createdAt: new Date()
     });
 
-    res.json({
+    // success response
+    res.status(200).json({
+      success: true,
       message: "Message saved successfully ✅",
       id: result.insertedId
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error:", error);
     res.status(500).json({
       message: "Server error ❌"
     });
@@ -68,8 +72,8 @@ app.post("/contact", async (req, res) => {
 });
 
 // ===== START SERVER =====
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
